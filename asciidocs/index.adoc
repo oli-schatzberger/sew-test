@@ -1,6 +1,6 @@
-= My Project
-firstname lastname
-1.0.0, yyyy-mm-dd: Some notes
+= SEW Test
+Oliver Schatzberger
+1.0.0, 2004-11-18: Some notes
 ifndef::imagesdir[:imagesdir: images]
 //:toc-placement!:  // prevents the generation of the doc at this position, so it can be printed afterwards
 :sourcedir: ../src/main/java
@@ -14,8 +14,146 @@ ifdef::backend-html5[]
 // print the toc here (not at the default position)
 //toc::[]
 
-== Header 1
+== JDBC
 
+=== Wichtigste JDBC Komponenten
 
-=== Header 2
+* DriverManager:
+verwaltet Liste an Treibern und versucht den geeigneten zu finden
 
+* Driver: regelt die Kommunikation mit dem Datenbankserver
+
+* Connection: Definiert die Methoden zur Kommunikation mit der Datenbank
+
+* Statement: wird verwendet um SQL Statements and die Datenbank zu schicken
+
+* Resultset: Enthält die abgefrageten Statements, kann wie ein Iterator benutzt werden.
+
+=== Setup JDBC with Derby and Maven
+
+1) Ergänze die Derby Dependency zum _pom.xml_ file.
+[source,xml]
+
+----
+<dependencies>
+    <dependency>
+        <groupId>org.apache.derby</groupId>
+        <artifactId>derbyclient</artifactId>
+        <version>10.14.2.0</version>
+    </dependency>
+</dependencies>
+----
+
+2) Connection aufbauen
+[source,java]
+
+----
+try ( Connection conn = DriverManager.getConnection(
+"jdbc:derby://localhost:1527/db;create=true", "app", "app") ) {
+// insert statements here...
+} catch (SQLException sqle) { sqle.printStackTrace(); }
+----
+
+3) SQL Statement absetzten
+[source,java]
+
+----
+String sql = "select * from demo";
+Statement stmt = conn.createStatement();
+ResultSet rs = stmt.executeQuery(sql);
+----
+
+4) Ergebnisse abfragen
+
+next() wandert immer zum nächsten Datensatz weiter
+[source,java]
+
+----
+while (rs.next()) {
+    System.out.printf("%5d: %-20s\n",
+    rs.getInt(1),
+    rs.getString("name"));
+}
+----
+
+5) Schließen von Ressourcen nicht vergessen
+
+jegliche Art von Verbindungen sollten mit close() wieder geschlossen werden
+
+=== Arten von Statements
+
+* Statement: normales Statement wird für statische Abrufe verwendet
+
+* Prepared Statement: dynamisches Statement wird benutzt wenn ein statement mehrmals abgefragt werden muss
+
+* Callable Statement:
+PL/SQL
+
+==== Statement
+
+[source,java]
+----
+public class FirstJdbcDemo {
+public static void main(String[] args) {
+try ( Connection conn = DriverManager.getConnection
+"jdbc:derby://localhost:1527/db;create=true", "app", "pass") ) {
+    String sql = "select * from demo";
+    Statement stmt = conn.createStatement();
+    ResultSet rs = stmt.executeQuery(sql);
+while (rs.next()) {
+    System.out.printf("%5d: %-20s\n",
+    rs.getInt(1),
+    rs.getString("name"));
+}
+rs.close();
+stmt.close();
+} catch (SQLException sqle) {
+    sqle.printStackTrace();
+        }
+    }
+}
+----
+
+==== Prepared Statement
+
+[source,java]
+----
+PreparedStatement pstmt = null;
+try {
+    String sql = "UPDATE Employees set salary=? WHERE lastname=?";
+    pstmt = conn.prepareStatement(sql);
+    pstmt.setDouble(1, 3500);
+    pstmt.setString(2, "Muster");
+    int cnt = pstmt.executeUpdate();
+} catch (SQLException e) {
+    e.printStacktrace();
+} finally {
+pstmt.close();
+}
+----
+
+=== Umgang mit Statements
+
+[source,java]
+----
+ResultSet executeQuery(String sql).
+----
+
+Liefert ein ResultSet-Objekt zurück
+
+[source,java]
+----
+boolean execute(String sql):
+----
+
+Liefert true zurück wenn das erste retournierte Objekt ein ResultSet ist.
+
+[source,java]
+----
+int executeUpdate(String sql)
+----
+
+Liefert die Anzahl an betroffenen Datensätzen zurück.
+Wird verwendet bei INSERT, DELETE oder UPDATE-Statements.
+
+== Scenebuilder
