@@ -96,7 +96,7 @@ PL/SQL
 public class FirstJdbcDemo {
 public static void main(String[] args) {
 try ( Connection conn = DriverManager.getConnection
-"jdbc:derby://localhost:1527/db;create=true", "app", "pass") ) {
+    "jdbc:derby://localhost:1527/db;create=true", "app", "pass") ) {
     String sql = "select * from demo";
     Statement stmt = conn.createStatement();
     ResultSet rs = stmt.executeQuery(sql);
@@ -105,8 +105,8 @@ while (rs.next()) {
     rs.getInt(1),
     rs.getString("name"));
 }
-rs.close();
-stmt.close();
+    rs.close();
+    stmt.close();
 } catch (SQLException sqle) {
     sqle.printStackTrace();
         }
